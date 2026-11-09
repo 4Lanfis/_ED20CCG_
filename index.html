@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCC02.de - Occult Sanctuary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #030305;
+            color: #d1d5db;
+            font-family: 'Cinzel', serif;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 20%, rgba(153, 27, 27, 0.25) 0%, transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.08) 0%, transparent 40%);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030305;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f1912;
+            border: 1px solid #d4af37;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #991b1b;
+        }
+
+        /* Mystical Glowing Effects */
+        .occult-glow {
+            text-shadow: 0 0 12px rgba(153, 27, 27, 0.9), 0 0 30px rgba(212, 175, 55, 0.6), 0 0 50px rgba(153, 27, 27, 0.4);
+        }
+        .seal-glow {
+            box-shadow: 0 0 50px rgba(153, 27, 27, 0.9), 0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 35px rgba(212, 175, 55, 0.5);
+        }
+
+        /* Slow rotating rune circle background */
+        @keyframes rotate-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes rotate-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        .spin-slow {
+            animation: rotate-slow 90s linear infinite;
+        }
+        .spin-reverse {
+            animation: rotate-reverse 120s linear infinite;
+        }
+
+        /* Gate animations & styles */
+        #gate-overlay {
+            perspective: 2000px;
+            transition: opacity 1.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.6s ease-in-out;
+        }
+        .gate-door-left, .gate-door-right {
+            transition: transform 2.8s cubic-bezier(0.77, 0, 0.175, 1);
+            background: 
+                linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(20,15,22,0.95) 50%, rgba(5,3,6,0.9) 100%),
+                radial-gradient(circle at center, #18111a 0%, #080509 75%, #020103 100%);
+            border: 10px solid #140f0c;
+            box-shadow: inset 0 0 120px rgba(0,0,0,0.98), 0 0 60px rgba(0,0,0,0.95);
+        }
+        .gate-door-left {
+            transform-origin: left center;
+        }
+        .gate-door-right {
+            transform-origin: right center;
+        }
+        .gate-open .gate-door-left {
+            transform: rotateY(-118deg);
+        }
+        .gate-open .gate-door-right {
+            transform: rotateY(118deg);
+        }
+        .gate-open {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        /* Torch Flame Flicker animation */
+        @keyframes flicker {
+            0%, 100% { opacity: 0.75; filter: drop-shadow(0 0 15px rgba(212,175,55,0.8)); transform: scale(1); }
+            25% { opacity: 0.95; filter: drop-shadow(0 0 30px rgba(185,28,28,0.95)); transform: scale(1.05); }
+            50% { opacity: 0.65; filter: drop-shadow(0 0 10px rgba(212,175,55,0.5)); transform: scale(0.97); }
+            75% { opacity: 1; filter: drop-shadow(0 0 35px rgba(212,175,55,1)); transform: scale(1.08); }
+        }
+        .flicker {
+            animation: flicker 3.2s infinite ease-in-out;
+        }
+
+        /* Whispering Text Glow */
+        @keyframes pulse-glow {
+            0%, 100% { text-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+            50% { text-shadow: 0 0 28px rgba(185, 28, 28, 0.9), 0 0 40px rgba(212, 175, 55, 0.7); }
+        }
+        .whisper-glow {
+            animation: pulse-glow 4.5s infinite ease-in-out;
+        }
+
+        /* Parchment link for Hints */
+        .parchment-link {
+            background: linear-gradient(135deg, #1c150c 0%, #2a1f12 50%, #150f08 100%);
+            color: #d4af37;
+            border: 1px solid #785a22;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9), 0 0 15px rgba(212, 175, 55, 0.15);
+            transition: all 0.4s ease;
+        }
+        .parchment-link:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 6px 25px rgba(153, 27, 27, 0.4), 0 0 25px rgba(212, 175, 55, 0.4);
+            border-color: #d4af37;
+            color: #fff;
+        }
+
+        /* Gothic Pillars Frame */
+        .gothic-pillar {
+            background: linear-gradient(180deg, #1a1512 0%, #0d0a08 50%, #050403 100%);
+            border-color: #2e2217;
+            box-shadow: inset 0 0 30px #000, 0 0 30px rgba(0,0,0,0.9);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-red-900 selection:text-amber-200 relative">
+
+    <!-- Ambient Floating Pentagram Background Decorative Element -->
+    <div class="fixed inset-0 pointer-events-none z-0 flex items-center justify-center opacity-10 overflow-hidden">
+        <svg class="w-[850px] h-[850px] text-amber-600 spin-slow" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="0.3">
+            <circle cx="50" cy="50" r="48" />
+            <circle cx="50" cy="50" r="44" stroke-dasharray="1 2" />
+            <polygon points="50,2 63,38 100,38 69,60 82,98 50,75 18,98 31,60 0,38 37,38" />
+        </svg>
+    </div>
+
+    <!-- INTRO GATE SCREEN (SUPER IMPOSING GOTHIC PORTAL) -->
+    <div id="gate-overlay" class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black select-none">
+        <!-- Dark Mystical Fog & Red Glow -->
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-950/60 via-black to-black opacity-95"></div>
+        
+        <!-- Outer Runes Frame Wall -->
+        <div class="absolute inset-2 sm:inset-6 border-2 border-amber-900/30 pointer-events-none flex flex-col justify-between p-4 z-10">
+            <div class="flex justify-between text-amber-600/40 text-xl sm:text-2xl font-medieval tracking-[0.3em]">
+                <span>ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</span>
+                <span>ᚺ ᚾ ᛁ ᛃ ᛇ ᛈ ᛉ</span>
+            </div>
+            <div class="flex justify-between text-amber-600/40 text-xl sm:text-2xl font-medieval tracking-[0.3em]">
+                <span>ᛊ ᛏ ᛒ ᛖ ᛗ ᛚ ᛜ</span>
+                <span>ᛞ ᛟ ᛤ ᛥ ᛦ ᛨ ᛩ</span>
+            </div>
+        </div>
+
+        <!-- Heavy Gothic Portal Frame Architecture -->
+        <div class="relative w-full max-w-6xl h-[92vh] flex items-center justify-center z-20 px-2 sm:px-6">
+            
+            <!-- Left Gothic Stone Pillar -->
+            <div class="hidden sm:flex flex-col justify-between h-full w-14 lg:w-20 gothic-pillar border-r-2 border-amber-900/40 z-30 relative py-6 items-center">
+                <div class="w-8 h-8 rounded-full border border-amber-800/50 flex items-center justify-center text-amber-600/60 text-xs">ᛟ</div>
+                <div class="h-full w-0.5 bg-gradient-to-b from-transparent via-amber-900/40 to-transparent my-4"></div>
+                <!-- Torch Light Left -->
+                <div class="w-6 h-6 rounded-full bg-amber-500/20 flicker border border-amber-500/60 flex items-center justify-center">
+                    <div class="w-3 h-3 rounded-full bg-red-600"></div>
+                </div>
+                <div class="h-full w-0.5 bg-gradient-to-b from-transparent via-amber-900/40 to-transparent my-4"></div>
+                <div class="w-8 h-8 rounded-full border border-amber-800/50 flex items-center justify-center text-amber-600/60 text-xs">ᛗ</div>
+            </div>
+
+            <!-- Main Portal Arc & Massive Doors Container -->
+            <div id="gate-container" class="relative w-full h-full flex z-20 border-t-8 border-b-8 border-amber-950 shadow-[0_0_120px_rgba(0,0,0,1)] rounded-t-3xl overflow-hidden">
+                
+                <!-- Pointed Arch Header Overlay Artwork -->
+                <div class="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-black via-stone-950 to-transparent z-40 flex items-center justify-center border-b border-amber-900/30">
+                    <span class="text-amber-700/60 text-xs sm:text-sm font-medieval tracking-[0.4em] uppercase">RÄTSEL</span>
+                </div>
+
+                <!-- Left Gate Door -->
+                <div class="gate-door gate-door-left w-1/2 h-full relative flex items-center justify-end overflow-hidden border-r-4 border-amber-950">
+                    <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#d4af37_1.5px,transparent_1.5px)] [background-size:24px_24px]"></div>
+                    <div class="absolute inset-y-0 left-0 w-full flex flex-col justify-around py-12 opacity-40 pointer-events-none">
+                        <div class="h-6 w-full bg-gradient-to-r from-amber-950 via-neutral-900 to-amber-950 border-y border-amber-800/60 flex justify-around items-center">
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                        </div>
+                        <div class="h-6 w-full bg-gradient-to-r from-amber-950 via-neutral-900 to-amber-950 border-y border-amber-800/60 flex justify-around items-center">
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                        </div>
+                    </div>
+                    <div class="absolute right-4 sm:right-12 w-20 h-36 rounded-full border-4 border-amber-900/90 flex items-center justify-center shadow-[0_0_25px_rgba(0,0,0,0.95)] bg-black/60">
+                        <div class="w-10 h-18 rounded-full border-2 border-amber-700/80"></div>
+                    </div>
+                </div>
+
+                <!-- Right Gate Door -->
+                <div class="gate-door gate-door-right w-1/2 h-full relative flex items-center justify-start overflow-hidden border-l-4 border-amber-950">
+                    <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#d4af37_1.5px,transparent_1.5px)] [background-size:24px_24px]"></div>
+                    <div class="absolute inset-y-0 right-0 w-full flex flex-col justify-around py-12 opacity-40 pointer-events-none">
+                        <div class="h-6 w-full bg-gradient-to-r from-amber-950 via-neutral-900 to-amber-950 border-y border-amber-800/60 flex justify-around items-center">
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                        </div>
+                        <div class="h-6 w-full bg-gradient-to-r from-amber-950 via-neutral-900 to-amber-950 border-y border-amber-800/60 flex justify-around items-center">
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                            <div class="w-2 h-2 rounded-full bg-amber-700"></div>
+                        </div>
+                    </div>
+                    <div class="absolute left-4 sm:left-12 w-20 h-36 rounded-full border-4 border-amber-900/90 flex items-center justify-center shadow-[0_0_25px_rgba(0,0,0,0.95)] bg-black/60">
+                        <div class="w-10 h-18 rounded-full border-2 border-amber-700/80"></div>
+                    </div>
+                </div>
+
+                <!-- Central Arcane Seal Button Overlay -->
+                <div class="absolute inset-0 flex flex-col items-center justify-start pt-12 sm:pt-16 pointer-events-none z-30">
+                    <div class="text-center px-4 pointer-events-auto flex flex-col items-center">
+                        <button id="gate-button" onclick="openSanctuary()" class="group relative inline-flex items-center justify-center p-1.5 overflow-hidden rounded-full font-cinzel text-white focus:outline-none transition-transform active:scale-95 cursor-pointer">
+                            <span class="absolute inset-0 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-red-700 opacity-60 group-hover:opacity-100 blur-md transition-opacity duration-500"></span>
+                            
+                            <span class="relative px-4 py-4 sm:px-5 sm:py-5 transition-all ease-in duration-300 bg-gradient-to-b from-black via-red-950 to-stone-950 rounded-full flex flex-col items-center justify-center border-2 border-amber-600/90 group-hover:border-amber-300 seal-glow">
+                                <svg class="absolute inset-0 w-full h-full text-amber-500/40 spin-slow pointer-events-none p-1" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                                    <circle cx="50" cy="50" r="46" stroke-dasharray="3 3" stroke-width="1.5" />
+                                </svg>
+                                
+                                <svg class="w-8 h-8 sm:w-10 sm:h-10 text-amber-500 group-hover:text-amber-200 transition-all duration-500 flicker mb-1 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path>
+                                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="0.8" stroke-dasharray="2 1"></circle>
+                                </svg>
+                                <span class="tracking-[0.25em] text-[9px] sm:text-[11px] font-bold text-amber-400 group-hover:text-amber-100 uppercase whisper-glow relative z-10">ÖFFNE DAS TOR</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Gothic Stone Pillar -->
+            <div class="hidden sm:flex flex-col justify-between h-full w-14 lg:w-20 gothic-pillar border-l-2 border-amber-900/40 z-30 relative py-6 items-center">
+                <div class="w-8 h-8 rounded-full border border-amber-800/50 flex items-center justify-center text-amber-600/60 text-xs">ᛉ</div>
+                <div class="h-full w-0.5 bg-gradient-to-b from-transparent via-amber-900/40 to-transparent my-4"></div>
+                <div class="w-6 h-6 rounded-full bg-amber-500/20 flicker border border-amber-500/60 flex items-center justify-center">
+                    <div class="w-3 h-3 rounded-full bg-red-600"></div>
+                </div>
+                <div class="h-full w-0.5 bg-gradient-to-b from-transparent via-amber-900/40 to-transparent my-4"></div>
+                <div class="w-8 h-8 rounded-full border border-amber-800/50 flex items-center justify-center text-amber-600/60 text-xs">ᛏ</div>
+            </div>
+
+        </div>
+
+        <!-- GCC02.de Title positioned lower on screen -->
+        <div class="absolute bottom-6 sm:bottom-10 inset-x-0 z-30 flex justify-center pointer-events-none">
+            <h1 class="text-3xl sm:text-6xl font-black text-amber-500 tracking-[0.35em] font-medieval occult-glow pointer-events-auto">GCC02.de</h1>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT (Sanctuary with Text Area & Certitude Checker) -->
+    <main class="relative z-10 container mx-auto px-4 py-8 max-w-5xl flex-grow flex flex-col justify-between items-center">
+        
+        <!-- Header Title -->
+        <header class="text-center my-6">
+            <h1 class="text-4xl sm:text-6xl font-black text-amber-500 tracking-[0.3em] font-medieval occult-glow mb-2">GCC02.de</h1>
+            <p class="text-xs sm:text-sm text-red-700/80 tracking-[0.4em] uppercase font-semibold whisper-glow">᚛ RÄTSEL ᚜</p>
+        </header>
+
+        <!-- Huge Transparent Occult Textarea -->
+        <div class="w-full relative my-4 group">
+            <div class="absolute -inset-1 bg-gradient-to-r from-red-900/40 via-amber-600/30 to-red-900/40 rounded-xl blur-lg opacity-60 group-hover:opacity-100 transition duration-1000"></div>
+            
+            <div class="relative bg-black/15 backdrop-blur-sm rounded-xl border border-amber-900/40 p-4 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.9)]">
+                <textarea 
+                    readonly
+                    class="w-full h-[45vh] sm:h-[52vh] bg-transparent text-amber-200/90 font-mono text-base sm:text-xl p-4 border border-amber-900/20 rounded-lg focus:outline-none resize-none leading-relaxed tracking-wider shadow-inner text-center flex items-center justify-center selection:bg-red-950 selection:text-amber-100"
+                    placeholder="XYZ"
+                >XYZ</textarea>
+
+                <div class="flex justify-end items-center mt-3 text-xs text-amber-600/50 px-2 font-mono">
+                    <span>GCC02.DE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Centered Certitude Checker & Hints Link -->
+        <div class="w-full my-8 flex flex-col items-center justify-center space-y-6">
+            
+            <!-- Certitude Checker Section (Centrally Aligned) -->
+            <div class="flex flex-col items-center justify-center p-6 rounded-xl bg-black/60 border border-amber-900/30 shadow-[0_0_30px_rgba(0,0,0,0.8)] backdrop-blur-sm max-w-md w-full text-center">
+                <div style="text-align:center" class="flex flex-col items-center justify-center">
+                    <a href="https://www.certitudes.org/certitude?wp=GCC02DE" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-300 inline-block mb-3">
+                        <img src="https://www.certitudes.org/logo?wp=GCC02DE" title="Klicke hier um die Liste der Rätsel-Knacker zu sehen" style="filter:drop-shadow(3px 3px 3px #CCC)" class="mx-auto">
+                    </a>
+                    <div style="font-family:Comic Sans MS" class="text-sm text-gray-300">
+                        Du kannst deine Rätsel-Lösung mit <a href="https://www.certitudes.org/certitude?wp=GCC02DE" target="_blank" rel="noopener noreferrer" class="text-amber-400 hover:text-amber-200 underline font-semibold">certitude</a> überprüfen.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hints Parchment Link Button (Below Checker) -->
+            <a href="https://4lanfis.github.io/" target="_blank" rel="noopener noreferrer" class="parchment-link px-8 py-3.5 rounded-lg text-sm font-bold tracking-[0.2em] uppercase font-medieval flex items-center space-x-3">
+                <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+                <span>Hints</span>
+            </a>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="relative z-10 text-center py-4 border-t border-amber-950/40 bg-black/80 text-amber-700/50 text-xs tracking-widest uppercase">
+        GCC02.de &bull; Mysteria &amp; Arcana
+    </footer>
+
+    <!-- Script section for smooth gate interaction -->
+    <script>
+        function openSanctuary() {
+            const overlay = document.getElementById('gate-overlay');
+            if (overlay) {
+                overlay.classList.add('gate-open');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 1600);
+            }
+        }
+    </script>
+</body>
+</html>
