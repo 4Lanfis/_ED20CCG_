@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCC02</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            user-select: none;
+        }
+        /* Dynamic Animations */
+        .feedback-pop {
+            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Screen Shake Animation */
+        .shake-sm { animation: shake 0.15s ease-in-out; }
+        .shake-md { animation: shake 0.25s ease-in-out; }
+        .shake-lg { animation: shake 0.35s ease-in-out; }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-3px, 2px) rotate(-1deg); }
+            40% { transform: translate(3px, -2px) rotate(1deg); }
+            60% { transform: translate(-2px, -1px) rotate(-0.5deg); }
+            80% { transform: translate(2px, 1px) rotate(0.5deg); }
+        }
+
+        /* Floating Number Animation */
+        .float-num {
+            position: absolute;
+            pointer-events: none;
+            font-weight: 700;
+            font-size: 1.25rem;
+            animation: floatUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6) rotate(0deg); }
+            50% { opacity: 1; transform: translate(-50%, -100%) scale(1.3) rotate(var(--rot)); }
+            100% { opacity: 0; transform: translate(-50%, -160%) scale(0.9) rotate(var(--rot)); }
+        }
+
+        /* Floating Emoji Particle */
+        .emoji-particle {
+            position: absolute;
+            pointer-events: none;
+            font-size: 1.5rem;
+            animation: particleFly 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+            z-index: 50;
+        }
+
+        @keyframes particleFly {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+            100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4) rotate(var(--rot)); }
+        }
+
+        /* Glowing Ring Wave Effect */
+        .ring-wave {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid var(--ring-color);
+            transform: translate(-50%, -50%) scale(0);
+            animation: ringExpand 0.6s ease-out forwards;
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        @keyframes ringExpand {
+            0% { opacity: 0.9; transform: translate(-50%, -50%) scale(0.1); stroke-width: 4px; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(3.5); stroke-width: 1px; }
+        }
+
+        /* Floating Milestone Emblem Overlay */
+        .milestone-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0.5);
+            font-size: 4rem;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15));
+            animation: badgePop 1.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            z-index: 60;
+        }
+
+        @keyframes badgePop {
+            0% { opacity: 0; transform: translate(-50%, -40%) scale(0.3) rotate(-10deg); }
+            30% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(5deg); }
+            70% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: translate(-50%, -60%) scale(0.8) rotate(10deg); }
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 45;
+        }
+    </style>
+</head>
+<body id="tapArea" class="min-h-screen bg-white text-gray-900 flex flex-col justify-between items-center p-6 selection:bg-gray-100 relative overflow-hidden cursor-pointer">
+
+    <!-- Confetti & Special Effects Canvas -->
+    <canvas id="effectsCanvas"></canvas>
+
+    <!-- Header -->
+    <header class="w-full max-w-xl flex justify-between items-center py-4 z-10 pointer-events-none">
+        <div class="flex items-center space-x-2 text-xs font-semibold tracking-wider text-gray-900 uppercase">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span class="text-sm font-bold tracking-widest text-gray-900">GCC02</span>
+        </div>
+        <div id="statusBadge" class="text-xs text-gray-400 font-medium transition-colors">🔒</div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="mainCard" class="my-auto flex flex-col items-center text-center w-full max-w-2xl px-4 py-8 z-10 pointer-events-auto">
+        
+        <!-- Counter View (Initial state) -->
+        <div id="counterContainer" class="flex flex-col items-center justify-center transition-all duration-500">
+            <div class="relative w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center">
+                <!-- SVG Circular Progress -->
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" stroke="#f3f4f6" stroke-width="4" fill="transparent"/>
+                    <circle id="progressCircle" cx="50" cy="50" r="42" stroke="#111827" stroke-width="4" stroke-dasharray="263.89" stroke-dashoffset="263.89" stroke-linecap="round" fill="transparent" class="transition-all duration-150 ease-out"/>
+                </svg>
+                <div class="absolute flex flex-col items-center">
+                    <span id="clickCount" class="text-4xl sm:text-6xl font-light text-gray-900 font-mono tracking-tight transition-transform duration-75">1000</span>
+                    <span id="percentText" class="text-xs font-semibold text-gray-300 uppercase tracking-widest mt-2">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revealed Coordinate View (Hidden initially) -->
+        <div id="revealedContainer" class="hidden opacity-0 flex flex-col items-center transition-all duration-700 transform translate-y-4 w-full">
+            <div id="viewMode" class="cursor-pointer py-8 px-6 rounded-3xl transition-all duration-300 hover:bg-gray-50/80 active:scale-[0.99] w-full" onclick="copyToClipboard()" title="Klicken zum Kopieren">
+                <div id="coordinateText" class="text-3xl sm:text-5xl md:text-6xl font-light tracking-wider text-gray-900 select-all font-mono leading-tight flex flex-col items-center gap-2 sm:gap-4">
+                    <span>N 52° 01.068</span>
+                    <span>E 007° 10.822</span>
+                </div>
+                <p id="subFormat" class="text-xs sm:text-sm text-gray-400 mt-6 font-normal tracking-wide">
+                    Klicken zum Kopieren
+                </p>
+            </div>
+
+            <!-- Action Buttons Container -->
+            <div class="flex flex-wrap items-center justify-center gap-4 mt-6">
+                <button id="copyBtn" onclick="copyToClipboard()" 
+                        class="group relative inline-flex items-center justify-center gap-2.5 px-8 py-4 text-base font-medium text-white bg-gray-900 rounded-full shadow-lg shadow-gray-200/80 hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-300/80 active:scale-95 transition-all duration-200 focus:outline-none">
+                    <svg id="copyIcon" class="w-5 h-5 text-gray-300 group-hover:text-white transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 002-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <svg id="checkIcon" class="w-5 h-5 text-emerald-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span id="btnText" class="tracking-wide">Koordinate kopieren</span>
+                </button>
+
+                <!-- Reset Button -->
+                <button onclick="resetApp()" 
+                        class="px-5 py-4 text-sm font-medium text-gray-400 bg-gray-100 rounded-full hover:bg-gray-200 hover:text-gray-900 active:scale-95 transition-all duration-200">
+                    🔄
+                </button>
+            </div>
+        </div>
+
+        <input type="text" id="hiddenCopyInput" class="sr-only" aria-hidden="true" />
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-xl text-center py-4 z-10 pointer-events-none">
+    </footer>
+
+    <!-- JavaScript Logic with 15 Massively Upgraded Visual Effects -->
+    <script>
+        const TARGET_CLICKS = 1000;
+        let remainingClicks = TARGET_CLICKS;
+        let isUnlocked = false;
+        let currentEffectIndex = 0;
+
+        const tapArea = document.getElementById('tapArea');
+        const mainCard = document.getElementById('mainCard');
+        const clickCountEl = document.getElementById('clickCount');
+        const percentText = document.getElementById('percentText');
+        const progressCircle = document.getElementById('progressCircle');
+        const counterContainer = document.getElementById('counterContainer');
+        const revealedContainer = document.getElementById('revealedContainer');
+        const statusBadge = document.getElementById('statusBadge');
+        const coordinateText = document.getElementById('coordinateText');
+        const copyBtn = document.getElementById('copyBtn');
+        const btnText = document.getElementById('btnText');
+        const copyIcon = document.getElementById('copyIcon');
+        const checkIcon = document.getElementById('checkIcon');
+        const hiddenCopyInput = document.getElementById('hiddenCopyInput');
+
+        const circumference = 2 * Math.PI * 42;
+        const PASTEL_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#eab308', '#6366f1'];
+
+        // HTML5 Canvas
+        const canvas = document.getElementById('effectsCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let shockwaves = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function particleLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Render shockwaves
+            for (let i = shockwaves.length - 1; i >= 0; i--) {
+                let s = shockwaves[i];
+                s.radius += s.speed;
+                s.alpha -= s.decay;
+
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, s.alpha);
+                ctx.lineWidth = s.lineWidth || 4;
+
+                if (s.type === 'rainbow') {
+                    let grad = ctx.createRadialGradient(s.x, s.y, Math.max(0, s.radius - 15), s.x, s.y, s.radius + 15);
+                    grad.addColorStop(0, '#ef4444');
+                    grad.addColorStop(0.2, '#f59e0b');
+                    grad.addColorStop(0.4, '#10b981');
+                    grad.addColorStop(0.6, '#3b82f6');
+                    grad.addColorStop(0.8, '#8b5cf6');
+                    grad.addColorStop(1, '#ec4899');
+                    ctx.strokeStyle = grad;
+                } else {
+                    ctx.strokeStyle = s.color || '#111827';
+                }
+
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+
+                if (s.alpha <= 0) shockwaves.splice(i, 1);
+            }
+
+            // Render Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += p.gravity || 0;
+                p.alpha -= p.decay;
+                p.rotation += p.vRot || 0;
+
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation);
+
+                if (p.type === 'glyph') {
+                    ctx.font = `bold ${p.size}px monospace`;
+                    ctx.fillStyle = p.color;
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(p.char, 0, 0);
+                } else if (p.type === 'line') {
+                    ctx.strokeStyle = p.color;
+                    ctx.lineWidth = p.lineWidth || 3;
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(p.length || 30, 0);
+                    ctx.stroke();
+                } else if (p.type === 'heart') {
+                    ctx.font = `${p.size}px sans-serif`;
+                    ctx.fillText('❤️', 0, 0);
+                } else if (p.type === 'coin') {
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#d97706';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else if (p.type === 'bubble') {
+                    ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
+                    ctx.lineWidth = 2;
+                    ctx.fillStyle = 'rgba(147, 197, 253, 0.25)';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                } else if (p.type === 'polygon') {
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -p.size);
+                    ctx.lineTo(p.size, p.size);
+                    ctx.lineTo(-p.size, p.size);
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (p.shape === 'rect') {
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.5);
+                } else {
+                    ctx.fillStyle = p.color;
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = p.glow ? 12 : 0;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+
+                if (p.alpha <= 0) particles.splice(i, 1);
+            }
+
+            requestAnimationFrame(particleLoop);
+        }
+        particleLoop();
+
+        // Tap Event
+        tapArea.addEventListener('click', (e) => {
+            if (isUnlocked) return;
+
+            // Execute high-impact visual effect
+            executeEffect(currentEffectIndex, e.clientX, e.clientY);
+
+            // Cycle 15 effects
+            currentEffectIndex = (currentEffectIndex + 1) % 15;
+
+            remainingClicks--;
+            const clicksDone = TARGET_CLICKS - remainingClicks;
+            
+            clickCountEl.innerText = remainingClicks;
+            const percent = Math.round((clicksDone / TARGET_CLICKS) * 100);
+            percentText.innerText = `${percent}%`;
+
+            clickCountEl.style.transform = 'scale(1.25)';
+            setTimeout(() => clickCountEl.style.transform = 'scale(1)', 80);
+
+            const offset = circumference - ((clicksDone / TARGET_CLICKS) * circumference);
+            progressCircle.style.strokeDashoffset = offset;
+
+            // Check for spectacular milestones
+            checkMilestones(clicksDone, e.clientX, e.clientY);
+
+            if (remainingClicks <= 0) {
+                unlockCoordinates();
+            }
+        });
+
+        // --- MILESTONE CELEBRATIONS ---
+        function checkMilestones(clicksDone, x, y) {
+            const milestones = {
+                100: { emblem: '🥉', shake: 'shake-sm' },
+                200: { emblem: '🥈', shake: 'shake-sm' },
+                300: { emblem: '🥇', shake: 'shake-sm' },
+                400: { emblem: '⭐', shake: 'shake-md' },
+                500: { emblem: '💎', shake: 'shake-md' },
+                600: { emblem: '🔥', shake: 'shake-md' },
+                700: { emblem: '⚡', shake: 'shake-lg' },
+                800: { emblem: '🚀', shake: 'shake-lg' },
+                900: { emblem: '👑', shake: 'shake-lg' },
+                1000: { emblem: '🏆', shake: 'shake-lg' }
+            };
+
+            if (milestones[clicksDone]) {
+                const config = milestones[clicksDone];
+                triggerMilestoneEvent(config.emblem, config.shake, x, y);
+            }
+        }
+
+        function triggerMilestoneEvent(symbol, shakeClass, x, y) {
+            // Screen Shake
+            mainCard.classList.remove('shake-sm', 'shake-md', 'shake-lg');
+            void mainCard.offsetWidth;
+            mainCard.classList.add(shakeClass);
+
+            // Floating Milestone Badge
+            const badge = document.createElement('div');
+            badge.className = 'milestone-badge';
+            badge.innerText = symbol;
+            document.body.appendChild(badge);
+            setTimeout(() => badge.remove(), 1400);
+
+            // Mega Shockwaves
+            shockwaves.push({ x: x, y: y, radius: 10, speed: 18, alpha: 1, decay: 0.015, lineWidth: 10, color: '#111827' });
+            shockwaves.push({ x: x, y: y, radius: 5, speed: 12, alpha: 1, decay: 0.012, lineWidth: 6, type: 'rainbow' });
+
+            // Screen-wide Supernova Burst
+            for (let i = 0; i < 120; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 18 + 6;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 2,
+                    gravity: 0.12,
+                    alpha: 1,
+                    decay: 0.01,
+                    size: Math.random() * 10 + 4,
+                    glow: true,
+                    color: PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)]
+                });
+            }
+        }
+
+        // --- 15 HIGH-IMPACT VISUAL EFFECTS ---
+        function executeEffect(index, x, y) {
+            switch (index) {
+                case 0: // 1. Mega Floating Emoji Explosion
+                    spawnEmojis(x, y, ['✨', '🚀', '💎', '🔥', '⭐', '💥', '⚡']);
+                    break;
+                case 1: // 2. Massive Triple Shockwave Pulse
+                    shockwaves.push({ x: x, y: y, radius: 5, speed: 14, alpha: 1, decay: 0.02, lineWidth: 8, color: '#3b82f6' });
+                    shockwaves.push({ x: x, y: y, radius: 2, speed: 9, alpha: 1, decay: 0.018, lineWidth: 5, color: '#8b5cf6' });
+                    shockwaves.push({ x: x, y: y, radius: 1, speed: 5, alpha: 1, decay: 0.015, lineWidth: 3, color: '#ec4899' });
+                    break;
+                case 2: // 3. Bouncing +1 Numbers Burst
+                    for(let i = 0; i < 5; i++) spawnBouncingNumber(x + (Math.random() - 0.5) * 60, y + (Math.random() - 0.5) * 40);
+                    break;
+                case 3: // 4. Matrix Digital Rain Storm
+                    spawnMatrixRain(x, y);
+                    break;
+                case 4: // 5. 360° Neon Laser Supernova
+                    spawnLaserRays(x, y);
+                    break;
+                case 5: // 6. Screen-Wide Confetti Cannon
+                    spawnConfetti(x, y);
+                    break;
+                case 6: // 7. Floating Bubble Cloud
+                    spawnBubbles(x, y);
+                    break;
+                case 7: // 8. Intense Lightning Storm
+                    spawnLightning(x, y);
+                    break;
+                case 8: // 9. Heart Fountain
+                    spawnHearts(x, y);
+                    break;
+                case 9: // 10. Heavy Glitch & Screen Disrupt
+                    triggerGlitchEffect(x, y);
+                    break;
+                case 10: // 11. Geometric Polygon Shatter
+                    spawnPolygons(x, y);
+                    break;
+                case 11: // 12. Fireworks Starburst
+                    spawnStarburst(x, y);
+                    break;
+                case 12: // 13. Swirling Galaxy Vortex
+                    spawnGalaxyVortex(x, y);
+                    break;
+                case 13: // 14. Gold Coin Rain
+                    spawnCoins(x, y);
+                    break;
+                case 14: // 15. Sonic Rainbow Explosion
+                    shockwaves.push({ x: x, y: y, radius: 5, speed: 18, alpha: 1, decay: 0.015, lineWidth: 10, type: 'rainbow' });
+                    shockwaves.push({ x: x, y: y, radius: 2, speed: 11, alpha: 1, decay: 0.015, lineWidth: 6, type: 'rainbow' });
+                    break;
+            }
+        }
+
+        // Effect 1: Emojis
+        function spawnEmojis(x, y, list) {
+            for (let i = 0; i < 12; i++) {
+                const ep = document.createElement('div');
+                ep.className = 'emoji-particle';
+                ep.innerText = list[Math.floor(Math.random() * list.length)];
+                ep.style.left = `${x}px`;
+                ep.style.top = `${y}px`;
+                ep.style.setProperty('--dx', `${(Math.random() - 0.5) * 320}px`);
+                ep.style.setProperty('--dy', `${(Math.random() - 0.8) * 320}px`);
+                ep.style.setProperty('--rot', `${(Math.random() - 0.5) * 720}deg`);
+                document.body.appendChild(ep);
+                setTimeout(() => ep.remove(), 800);
+            }
+        }
+
+        // Effect 3: +1 Text
+        function spawnBouncingNumber(x, y) {
+            const num = document.createElement('div');
+            num.className = 'float-num';
+            num.innerText = '+1';
+            num.style.color = PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
+            num.style.fontSize = `${Math.random() * 1.5 + 1.2}rem`;
+            num.style.left = `${x}px`;
+            num.style.top = `${y}px`;
+            num.style.setProperty('--rot', `${(Math.random() - 0.5) * 60}deg`);
+            document.body.appendChild(num);
+            setTimeout(() => num.remove(), 800);
+        }
+
+        // Effect 4: Matrix Rain
+        function spawnMatrixRain(x, y) {
+            const chars = '0101010189ABCDEFGHJKLMNPQRSTUVWXYZ';
+            for (let i = 0; i < 40; i++) {
+                particles.push({
+                    type: 'glyph',
+                    char: chars[Math.floor(Math.random() * chars.length)],
+                    x: x + (Math.random() - 0.5) * 200,
+                    y: y + (Math.random() - 0.5) * 80,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: Math.random() * 8 + 4,
+                    alpha: 1,
+                    decay: 0.02,
+                    size: Math.random() * 12 + 14,
+                    color: '#10b981'
+                });
+            }
+        }
+
+        // Effect 5: Laser Rays
+        function spawnLaserRays(x, y) {
+            for (let i = 0; i < 32; i++) {
+                const angle = (i / 32) * Math.PI * 2;
+                const speed = Math.random() * 12 + 8;
+                particles.push({
+                    type: 'line',
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    alpha: 1,
+                    decay: 0.025,
+                    length: Math.random() * 40 + 20,
+                    lineWidth: 4,
+                    rotation: angle,
+                    color: PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)]
+                });
+            }
+        }
+
+        // Effect 6: Confetti Blast
+        function spawnConfetti(x, y) {
+            for (let i = 0; i < 50; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 12 + 4;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 4,
+                    gravity: 0.25,
+                    alpha: 1,
+                    decay: 0.015,
+                    size: Math.random() * 10 + 6,
+                    color: PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)],
+                    rotation: Math.random() * Math.PI,
+                    vRot: (Math.random() - 0.5) * 0.4,
+                    shape: 'rect'
+                });
+            }
+        }
+
+        // Effect 7: Soap Bubbles
+        function spawnBubbles(x, y) {
+            for (let i = 0; i < 20; i++) {
+                particles.push({
+                    type: 'bubble',
+                    x: x + (Math.random() - 0.5) * 80,
+                    y: y + (Math.random() - 0.5) * 80,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: -Math.random() * 5 - 2,
+                    alpha: 1,
+                    decay: 0.015,
+                    size: Math.random() * 30 + 16
+                });
+            }
+        }
+
+        // Effect 8: Lightning Flash
+        function spawnLightning(x, y) {
+            mainCard.classList.remove('shake-sm', 'shake-md', 'shake-lg');
+            void mainCard.offsetWidth;
+            mainCard.classList.add('shake-sm');
+            for (let i = 0; i < 20; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 16 + 8;
+                particles.push({
+                    type: 'line',
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    alpha: 1,
+                    decay: 0.04,
+                    length: 45,
+                    lineWidth: 4,
+                    rotation: angle + (Math.random() - 0.5),
+                    color: '#f59e0b'
+                });
+            }
+        }
+
+        // Effect 9: Hearts
+        function spawnHearts(x, y) {
+            for (let i = 0; i < 18; i++) {
+                particles.push({
+                    type: 'heart',
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.8) * 10,
+                    gravity: 0.15,
+                    alpha: 1,
+                    decay: 0.02,
+                    size: Math.random() * 16 + 18,
+                    rotation: (Math.random() - 0.5) * 0.6
+                });
+            }
+        }
+
+        // Effect 10: Glitch Shake
+        function triggerGlitchEffect(x, y) {
+            mainCard.classList.remove('shake-sm', 'shake-md', 'shake-lg');
+            void mainCard.offsetWidth;
+            mainCard.classList.add('shake-lg');
+            
+            shockwaves.push({ x: x, y: y, radius: 10, speed: 20, alpha: 1, decay: 0.05, lineWidth: 10, color: '#ef4444' });
+            shockwaves.push({ x: x, y: y, radius: 5, speed: 16, alpha: 1, decay: 0.05, lineWidth: 8, color: '#06b6d4' });
+            shockwaves.push({ x: x, y: y, radius: 2, speed: 12, alpha: 1, decay: 0.05, lineWidth: 6, color: '#10b981' });
+        }
+
+        // Effect 11: Polygon Shatter
+        function spawnPolygons(x, y) {
+            for (let i = 0; i < 25; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 10 + 4;
+                particles.push({
+                    type: 'polygon',
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    gravity: 0.15,
+                    alpha: 1,
+                    decay: 0.02,
+                    size: Math.random() * 14 + 8,
+                    color: PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)],
+                    rotation: Math.random() * Math.PI,
+                    vRot: (Math.random() - 0.5) * 0.6
+                });
+            }
+        }
+
+        // Effect 12: Fireworks
+        function spawnStarburst(x, y) {
+            for (let i = 0; i < 60; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 14 + 4;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    gravity: 0.08,
+                    alpha: 1,
+                    decay: 0.018,
+                    size: Math.random() * 6 + 4,
+                    glow: true,
+                    color: PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)]
+                });
+            }
+        }
+
+        // Effect 13: Galaxy Vortex
+        function spawnGalaxyVortex(x, y) {
+            for (let i = 0; i < 36; i++) {
+                const angle = (i / 36) * Math.PI * 2;
+                const dist = Math.random() * 40 + 10;
+                particles.push({
+                    x: x + Math.cos(angle) * dist,
+                    y: y + Math.sin(angle) * dist,
+                    vx: -Math.sin(angle) * 6,
+                    vy: Math.cos(angle) * 6,
+                    alpha: 1,
+                    decay: 0.02,
+                    size: Math.random() * 8 + 4,
+                    color: '#8b5cf6',
+                    glow: true
+                });
+            }
+        }
+
+        // Effect 14: Gold Coins
+        function spawnCoins(x, y) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    type: 'coin',
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: -Math.random() * 10 - 4,
+                    gravity: 0.35,
+                    alpha: 1,
+                    decay: 0.015,
+                    size: Math.random() * 8 + 18
+                });
+            }
+        }
+
+        function unlockCoordinates() {
+            isUnlocked = true;
+            statusBadge.innerText = "🔓";
+
+            // Ultimate Fireworks Celebration
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 3;
+            for (let i = 0; i < 300; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 18 + 4;
+                particles.push({
+                    x: cx,
+                    y: cy,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 4,
+                    gravity: 0.2,
+                    alpha: 1,
+                    decay: 0.008,
+                    size: Math.random() * 12 + 4,
+                    color: PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)],
+                    rotation: Math.random() * Math.PI,
+                    vRot: (Math.random() - 0.5) * 0.4,
+                    shape: Math.random() > 0.4 ? 'rect' : 'circle'
+                });
+            }
+
+            counterContainer.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                counterContainer.classList.add('hidden');
+                revealedContainer.classList.remove('hidden');
+                setTimeout(() => {
+                    revealedContainer.classList.remove('opacity-0', 'translate-y-4');
+                }, 50);
+            }, 500);
+        }
+
+        function copyToClipboard() {
+            const lines = Array.from(coordinateText.querySelectorAll('span')).map(span => span.innerText.trim());
+            const textToCopy = lines.join('\n');
+            
+            hiddenCopyInput.value = textToCopy;
+            hiddenCopyInput.select();
+            hiddenCopyInput.setSelectionRange(0, 99999);
+
+            let successful = false;
+            try {
+                successful = document.execCommand('copy');
+            } catch (err) {
+                console.error('Kopieren fehlgeschlagen:', err);
+            }
+
+            if (!successful && navigator.clipboard) {
+                navigator.clipboard.writeText(textToCopy);
+            }
+
+            showFeedback();
+        }
+
+        let copyTimeout = null;
+        function showFeedback() {
+            if (copyTimeout) clearTimeout(copyTimeout);
+
+            copyBtn.classList.remove('bg-gray-900', 'hover:bg-gray-800');
+            copyBtn.classList.add('bg-emerald-700', 'feedback-pop');
+            
+            btnText.innerText = 'Kopiert! ✓';
+            copyIcon.classList.add('hidden');
+            checkIcon.classList.remove('hidden');
+
+            copyTimeout = setTimeout(() => {
+                copyBtn.classList.remove('bg-emerald-700', 'feedback-pop');
+                copyBtn.classList.add('bg-gray-900', 'hover:bg-gray-800');
+                
+                btnText.innerText = 'Koordinate kopieren';
+                copyIcon.classList.remove('hidden');
+                checkIcon.classList.add('hidden');
+            }, 2000);
+        }
+
+        function resetApp() {
+            remainingClicks = TARGET_CLICKS;
+            isUnlocked = false;
+            currentEffectIndex = 0;
+
+            clickCountEl.innerText = TARGET_CLICKS;
+            percentText.innerText = '0%';
+            progressCircle.style.strokeDashoffset = circumference;
+
+            statusBadge.innerText = "🔒";
+
+            revealedContainer.classList.add('opacity-0', 'translate-y-4');
+            setTimeout(() => {
+                revealedContainer.classList.add('hidden');
+                counterContainer.classList.remove('hidden');
+                setTimeout(() => {
+                    counterContainer.classList.remove('opacity-0', 'scale-95');
+                }, 50);
+            }, 400);
+        }
+    </script>
+</body>
+</html>
